@@ -109,5 +109,8 @@ class MemoryStore:
             )
         return len(groups)
 
+    async def ping(self) -> None:
+        return None
+
     async def close(self) -> None:
         return None
