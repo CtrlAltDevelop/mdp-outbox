@@ -1,0 +1,12 @@
+{"stream":"btcusdt@trade","data":{"e":"trade","E":1790446152679,"s":"BTCUSDT","t":6715234671,"p":"84106.09000000","q":"0.00007000","T":1790446152678,"m":true,"M":true}}
+{"stream":"btcusdt@trade","data":{"e":"trade","E":1790446152818,"s":"BTCUSDT","t":6715234672,"p":"84106.10000000","q":"0.00021000","T":1790446152818,"m":false,"M":true}}
+{"stream":"ethusdt@trade","data":{"e":"trade","E":1790446153301,"s":"ETHUSDT","t":4388803977,"p":"2688.86000000","q":"0.00440000","T":1790446153301,"m":false,"M":true}}
+{"stream":"ethusdt@trade","data":{"e":"trade","E":1790446153301,"s":"ETHUSDT","t":4388803978,"p":"2688.86000000","q":"0.00190000","T":1790446153301,"m":false,"M":true}}
+{"stream":"ethusdt@trade","data":{"e":"trade","E":1790446153301,"s":"ETHUSDT","t":4388803979,"p":"2688.86000000","q":"0.05140000","T":1790446153301,"m":false,"M":true}}
+{"stream":"btcusdt@trade","data":{"e":"trade","E":1790446153982,"s":"BTCUSDT","t":6715234673,"p":"84106.09000000","q":"0.11895000","T":1790446153981,"m":true,"M":true}}
+{"stream":"ethusdt@trade","data":{"e":"trade","E":1790446154328,"s":"ETHUSDT","t":4388803980,"p":"2688.85000000","q":"0.00400000","T":1790446154328,"m":true,"M":true}}
+{"stream":"btcusdt@trade","data":{"e":"trade","E":1790446154785,"s":"BTCUSDT","t":6715234674,"p":"84106.09000000","q":"0.00007000","T":1790446154785,"m":true,"M":true}}
+{"stream":"btcusdt@trade","data":{"e":"trade","E":1790446155412,"s":"BTCUSDT","t":6715234675,"p":"84106.10000000","q":"0.00020000","T":1790446155412,"m":false,"M":true}}
+{"stream":"btcusdt@trade","data":{"e":"trade","E":1790446155884,"s":"BTCUSDT","t":6715234676,"p":"84106.10000000","q":"0.00130000","T":1790446155884,"m":false,"M":true}}
+{"stream":"ethusdt@trade","data":{"e":"trade","E":1790446155916,"s":"ETHUSDT","t":4388803981,"p":"2688.86000000","q":"0.01850000","T":1790446155915,"m":false,"M":true}}
+{"stream":"btcusdt@trade","data":{"e":"trade","E":1790446156281,"s":"BTCUSDT","t":6715234677,"p":"84106.09000000","q":"0.00060000","T":1790446156280,"m":true,"M":true}}
