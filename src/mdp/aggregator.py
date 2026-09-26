@@ -16,6 +16,12 @@ one. A trade is judged against its 1m bucket, the first to close; once it is
 accepted it is folded into every timeframe, so no two timeframes ever disagree
 about which trades they contain.
 
+A quiet market produces no trades to push the watermark, so ``advance`` also
+moves it on the wall clock: once ``allowed_lateness + idle_grace`` has passed
+with nothing newer, the last candle closes on time instead of waiting for the
+next trade. The trade-off — a source whose clock runs behind ours by more than
+the grace has its trades judged late — is discussed in ADR 0001.
+
 The aggregator is synchronous and does no I/O. The service around it decides
 when to commit, publish and acknowledge; this class only decides what the
 candles are.
@@ -26,6 +32,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal
+from typing import Any
 
 from mdp.schema import Candle, Trade
 from mdp.timeframes import BASE_TIMEFRAME, TIMEFRAMES, Timeframe
@@ -92,6 +99,37 @@ class CandleBuilder:
         self.quote_volume += price * trade.qty
         self.trades += 1
 
+    def to_state(self) -> dict[str, Any]:
+        return {
+            "tf": self.tf.value,
+            "start": self.start,
+            "ohlc": [str(self.open), str(self.high), str(self.low), str(self.close)],
+            "volume": str(self.volume),
+            "quote_volume": str(self.quote_volume),
+            "trades": self.trades,
+            "first": list(self.first),
+            "last": list(self.last),
+        }
+
+    @classmethod
+    def from_state(cls, symbol: str, data: dict[str, Any]) -> CandleBuilder:
+        o, h, lo, c = (Decimal(v) for v in data["ohlc"])
+        first, last = data["first"], data["last"]
+        return cls(
+            symbol=symbol,
+            tf=Timeframe(data["tf"]),
+            start=data["start"],
+            open=o,
+            high=h,
+            low=lo,
+            close=c,
+            volume=Decimal(data["volume"]),
+            quote_volume=Decimal(data["quote_volume"]),
+            trades=data["trades"],
+            first=(first[0], first[1], first[2], first[3]),
+            last=(last[0], last[1], last[2], last[3]),
+        )
+
     def snapshot(self, *, closed: bool) -> Candle:
         return Candle(
             symbol=self.symbol,
@@ -144,6 +182,17 @@ class Aggregator:
     def watermark(self, symbol: str) -> int | None:
         state = self._symbols.get(symbol)
         return state.watermark if state else None
+
+    def advance(self, now_ms: int, idle_grace_ms: int) -> None:
+        """Move every watermark up to ``now - lateness - grace`` on the wall clock.
+
+        Symbols that have never traded are left alone: they have nothing open,
+        and starting their watermark here would mark a slow first trade late.
+        """
+        floor = now_ms - self._lateness - idle_grace_ms
+        for state in self._symbols.values():
+            if state.watermark is not None and floor > state.watermark:
+                state.watermark = floor
 
     def observe(self, trades: Iterable[Trade]) -> tuple[list[Trade], list[Trade]]:
         """Split trades into on-time and late, advancing watermarks as it goes.
@@ -214,6 +263,32 @@ class Aggregator:
             state.dirty.clear()
         out.sort(key=lambda c: (c.symbol, c.time, c.tf.ms))
         return out
+
+    def export_state(self, symbol: str) -> dict[str, Any] | None:
+        """Everything needed to resume ``symbol`` after a restart, as plain JSON types.
+
+        Call it straight after ``flush``: the open builders are then exactly the
+        candles the watermark has not passed, which is what a restart must
+        rebuild. The dedup keys are deliberately left out — after a restart the
+        trade log's unique key catches replays, and it is the only dedup that
+        survives a crash anyway.
+        """
+        state = self._symbols.get(symbol)
+        if state is None or state.watermark is None:
+            return None
+        return {
+            "watermark": state.watermark,
+            "max_event": state.max_event,
+            "open": [builder.to_state() for builder in state.open.values()],
+        }
+
+    def restore_state(self, symbol: str, data: dict[str, Any]) -> None:
+        builders = [CandleBuilder.from_state(symbol, item) for item in data["open"]]
+        self._symbols[symbol] = _SymbolState(
+            watermark=data["watermark"],
+            max_event=data["max_event"],
+            open={(b.tf, b.start): b for b in builders if b.tf in self._timeframes},
+        )
 
     def process(self, trades: Iterable[Trade]) -> BatchResult:
         """``observe``, ``apply`` and ``flush`` in one step, when no store sits between."""
