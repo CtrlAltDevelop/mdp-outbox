@@ -88,10 +88,6 @@ class AggregationService:
         self._aggregator = Aggregator(allowed_lateness_ms=allowed_lateness_ms)
         self._pending_drained = False
 
-    @property
-    def aggregator(self) -> Aggregator:
-        return self._aggregator
-
     async def start(self) -> None:
         """Create the groups, restore the checkpoint, and take over orphaned messages."""
         for stream in self._streams:

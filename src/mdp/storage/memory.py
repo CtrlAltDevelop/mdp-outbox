@@ -52,7 +52,6 @@ class MemoryStore:
         self.trade_keys: set[tuple[str, str]] = set()
         self.candles: dict[CandleKey, Candle] = {}
         self.states: dict[str, dict[str, Any]] = {}
-        self.commits = 0
 
     @asynccontextmanager
     async def transaction(self) -> AsyncIterator[_MemoryTransaction]:
@@ -61,7 +60,6 @@ class MemoryStore:
         self.trade_keys |= tx.trade_keys
         self.candles.update(tx.candles)
         self.states.update(tx.states)
-        self.commits += 1
 
     async def load_states(self, symbols: Sequence[str]) -> dict[str, dict[str, Any]]:
         return {s: copy.deepcopy(self.states[s]) for s in symbols if s in self.states}

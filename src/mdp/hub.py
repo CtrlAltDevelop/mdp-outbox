@@ -76,10 +76,6 @@ class CandleHub:
         self._active = asyncio.Event()  # set while at least one channel is subscribed
         self._reader: asyncio.Task[None] | None = None
 
-    @property
-    def clients(self) -> int:
-        return len({c for clients in self._subscribers.values() for c in clients})
-
     def channels(self) -> list[str]:
         return sorted(self._subscribers)
 
