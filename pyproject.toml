@@ -33,7 +33,7 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pydantic>=2.9",
     "pydantic-settings>=2.7",
-    "redis>=5.2",
+    "redis[hiredis]>=5.2",
     "uvicorn>=0.30",
     "websockets>=13",
 ]
@@ -74,7 +74,7 @@ known-first-party = ["mdp"]
 [tool.mypy]
 strict = true
 python_version = "3.12"
-files = ["src", "tests"]
+files = ["src", "tests", "bench"]
 mypy_path = "src"
 explicit_package_bases = true
 exclude = ['^\.venv/', '^build/']

@@ -43,6 +43,8 @@ down:
 
 bench:
 	uv run python bench/aggregator.py
+	uv run python bench/latency.py
+	uv run python bench/storage.py
 
 # CI installs with pip from this file; regenerate it whenever uv.lock changes.
 requirements:
