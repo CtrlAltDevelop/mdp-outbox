@@ -23,9 +23,20 @@ async def hub(redis: aioredis.Redis) -> AsyncIterator[CandleHub]:
     await hub.stop()
 
 
-async def subscriptions(redis: aioredis.Redis, channel: str) -> int:
-    counts = cast("list[tuple[bytes, int]]", await redis.pubsub_numsub(channel))
-    return counts[0][1]
+async def subscriptions(redis: aioredis.Redis, channel: str, expect: int) -> int:
+    """The channel's subscriber count, once it settles on ``expect`` (or after 2s).
+
+    (UN)SUBSCRIBE goes out on the hub's connection and NUMSUB on another, so Redis
+    may answer the count before it has read the command that changes it.
+    """
+    count = -1
+    for _ in range(40):
+        counts = cast("list[tuple[bytes, int]]", await redis.pubsub_numsub(channel))
+        count = counts[0][1]
+        if count == expect:
+            break
+        await asyncio.sleep(0.05)
+    return count
 
 
 async def read_until_cut_off(client: Client) -> None:
@@ -40,7 +51,7 @@ async def test_many_clients_share_one_redis_subscription(
     await hub.subscribe(a, CHANNEL)
     await hub.subscribe(b, CHANNEL)
 
-    assert await subscriptions(redis, CHANNEL) == 1
+    assert await subscriptions(redis, CHANNEL, 1) == 1
     await redis.publish(CHANNEL, '{"close":"1"}')
 
     for client in (a, b):
@@ -56,9 +67,9 @@ async def test_the_last_client_out_unsubscribes_the_channel(
     await hub.subscribe(b, CHANNEL)
 
     await hub.disconnect(a)
-    assert await subscriptions(redis, CHANNEL) == 1
+    assert await subscriptions(redis, CHANNEL, 1) == 1
     await hub.disconnect(b)
-    assert await subscriptions(redis, CHANNEL) == 0
+    assert await subscriptions(redis, CHANNEL, 0) == 0
     assert hub.channels() == []
 
 
