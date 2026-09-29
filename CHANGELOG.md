@@ -40,5 +40,5 @@ WebSocket protocol, the REST parameters or an `MDP_*` setting.
   whole pipeline on the synthetic source.
 - Benchmarks for aggregator throughput, end-to-end latency and storage.
 
-[Unreleased]: https://github.com/CtrlAltDevelop/market-data-pipeline/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/CtrlAltDevelop/market-data-pipeline/releases/tag/v0.1.0
+[Unreleased]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/CtrlAltDevelop/mdp-outbox/releases/tag/v0.1.0

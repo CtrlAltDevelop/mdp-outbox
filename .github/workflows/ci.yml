@@ -18,7 +18,9 @@ permissions: {}
 jobs:
   backend:
     name: Backend
-    uses: CtrlAltDevelop/ci-workflows/.github/workflows/python-backend.yml@v1
+    uses: CtrlAltDevelop/ci-workflows/.github/workflows/python-backend.yml@v1.1.1
+    permissions:
+      contents: read
     with:
       python-version: "3.14"
       # `uv export --all-groups`: runtime and dev dependencies, so pytest,
@@ -33,7 +35,7 @@ jobs:
 
   security:
     name: Security
-    uses: CtrlAltDevelop/ci-workflows/.github/workflows/security.yml@v1
+    uses: CtrlAltDevelop/ci-workflows/.github/workflows/security.yml@v1.1.1
     permissions:
       contents: read
       security-events: write

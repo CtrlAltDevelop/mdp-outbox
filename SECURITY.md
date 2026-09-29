@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Please do not open a public issue. Report it privately through GitHub's
-[security advisories](https://github.com/CtrlAltDevelop/market-data-pipeline/security/advisories/new),
+[security advisories](https://github.com/CtrlAltDevelop/mdp-outbox/security/advisories/new),
 with what you found, how to reproduce it, and what an attacker could do with
 it. You will get an acknowledgement within a week and a fix, or a reasoned
 answer, as soon as one is ready.

@@ -1,6 +1,6 @@
 # Market Data Pipeline
 
-[![CI](https://github.com/CtrlAltDevelop/market-data-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlAltDevelop/market-data-pipeline/actions/workflows/ci.yml)
+[![CI](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Ingest trades from exchanges and a matching engine, aggregate them into OHLCV

@@ -12,7 +12,7 @@
 
 x-pipeline: &pipeline
   build: .
-  image: market-data-pipeline:local
+  image: mdp-outbox:local
   restart: unless-stopped
   env_file:
     - path: .env
