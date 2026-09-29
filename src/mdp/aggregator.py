@@ -38,7 +38,12 @@ from mdp.schema import Candle, Trade
 from mdp.timeframes import BASE_TIMEFRAME, TIMEFRAMES, Timeframe
 
 type OrderKey = tuple[int, int, str, str]
-type BucketKey = tuple[Timeframe, int]
+# (bucket width in ms, bucket start). The width stands in for the timeframe
+# because an int hashes in C, and an Enum member hashes in Python.
+type BucketKey = tuple[int, int]
+
+
+_BASE_MS = BASE_TIMEFRAME.ms
 
 
 def _order_key(trade: Trade) -> OrderKey:
@@ -67,7 +72,9 @@ class CandleBuilder:
     last: OrderKey
 
     @classmethod
-    def from_trade(cls, trade: Trade, tf: Timeframe, key: OrderKey) -> CandleBuilder:
+    def from_trade(
+        cls, trade: Trade, tf: Timeframe, key: OrderKey, notional: Decimal
+    ) -> CandleBuilder:
         return cls(
             symbol=trade.symbol,
             tf=tf,
@@ -77,7 +84,7 @@ class CandleBuilder:
             low=trade.price,
             close=trade.price,
             volume=trade.qty,
-            quote_volume=trade.price * trade.qty,
+            quote_volume=notional,
             trades=1,
             first=key,
             last=key,
@@ -87,16 +94,20 @@ class CandleBuilder:
     def end(self) -> int:
         return self.start + self.tf.ms
 
-    def add(self, trade: Trade, key: OrderKey) -> None:
+    def add(self, trade: Trade, key: OrderKey, notional: Decimal) -> None:
         price = trade.price
-        self.high = max(self.high, price)
-        self.low = min(self.low, price)
+        # Explicit comparisons rather than max()/min(): this runs once per
+        # trade per timeframe, and the call overhead shows.
+        if price > self.high:
+            self.high = price
+        elif price < self.low:
+            self.low = price
         if key < self.first:
             self.first, self.open = key, price
         if key >= self.last:
             self.last, self.close = key, price
         self.volume += trade.qty
-        self.quote_volume += price * trade.qty
+        self.quote_volume += notional
         self.trades += 1
 
     def to_state(self) -> dict[str, Any]:
@@ -211,9 +222,7 @@ class Aggregator:
             if state is None:
                 state = self._symbols[trade.symbol] = _SymbolState()
             ts = trade.ts_ms
-            if state.watermark is not None and BASE_TIMEFRAME.floor(ts) + BASE_TIMEFRAME.ms <= (
-                state.watermark
-            ):
+            if state.watermark is not None and ts - ts % _BASE_MS + _BASE_MS <= state.watermark:
                 late.append(trade)
                 continue
             on_time.append(trade)
@@ -226,21 +235,25 @@ class Aggregator:
 
     def apply(self, trades: Iterable[Trade]) -> None:
         """Fold trades that ``observe`` accepted into their open buckets."""
+        # The hot loop: widths are looked up once, not per trade and timeframe.
+        widths = [(tf, tf.ms) for tf in self._timeframes]
         for trade in trades:
             state = self._symbols[trade.symbol]
-            base = BASE_TIMEFRAME.floor(trade.ts_ms)
-            seen = state.seen.setdefault(base, set())
-            if trade.key in seen:
+            ts = trade.ts_ms
+            seen = state.seen.setdefault(ts - ts % _BASE_MS, set())
+            identity = trade.key
+            if identity in seen:
                 continue
-            seen.add(trade.key)
+            seen.add(identity)
             key = _order_key(trade)
-            for tf in self._timeframes:
-                bucket = (tf, tf.floor(trade.ts_ms))
+            notional = trade.price * trade.qty
+            for tf, width in widths:
+                bucket = (width, ts - ts % width)
                 builder = state.open.get(bucket)
                 if builder is None:
-                    state.open[bucket] = CandleBuilder.from_trade(trade, tf, key)
+                    state.open[bucket] = CandleBuilder.from_trade(trade, tf, key, notional)
                 else:
-                    builder.add(trade, key)
+                    builder.add(trade, key, notional)
                 state.dirty.add(bucket)
 
     def flush(self) -> list[Candle]:
@@ -287,7 +300,7 @@ class Aggregator:
         self._symbols[symbol] = _SymbolState(
             watermark=data["watermark"],
             max_event=data["max_event"],
-            open={(b.tf, b.start): b for b in builders if b.tf in self._timeframes},
+            open={(b.tf.ms, b.start): b for b in builders if b.tf in self._timeframes},
         )
 
     def process(self, trades: Iterable[Trade]) -> BatchResult:

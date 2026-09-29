@@ -11,6 +11,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
+from functools import cached_property
 from typing import Annotated
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, PlainSerializer, field_validator
@@ -54,8 +55,9 @@ class Trade(BaseModel):
         """Identity for deduplication: a trade id is only unique within its source."""
         return (self.source, self.trade_id)
 
-    @property
+    @cached_property
     def ts_ms(self) -> int:
+        """Event time in epoch milliseconds, computed once: the aggregator asks often."""
         return to_ms(self.ts_exchange)
 
 
