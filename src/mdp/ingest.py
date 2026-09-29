@@ -15,6 +15,7 @@ import logging
 
 import redis.asyncio as aioredis
 
+from mdp.metrics import DEAD_LETTERS, DUPLICATES, TRADES_INGESTED
 from mdp.normalizer import Normalizer, Rejected
 from mdp.schema import Trade
 from mdp.sources import TradeSource
@@ -52,7 +53,9 @@ class IngestService:
     async def _read(self) -> None:
         async for event in self._source.events():
             admitted = event if isinstance(event, Rejected) else self._normalizer.admit(event)
-            if admitted is not None:
+            if admitted is None:
+                DUPLICATES.labels("ingest").inc()
+            else:
                 await self._queue.put(admitted)
         await self._queue.put(None)  # the source ended: flush and stop
 
@@ -72,6 +75,7 @@ class IngestService:
         pipe = self._redis.pipeline(transaction=False)
         for item in batch:
             if isinstance(item, Trade):
+                TRADES_INGESTED.labels(item.source, item.symbol).inc()
                 # MAXLEN ~ trims in whole macro-nodes: cheap, and the stream
                 # only has to cover how far the aggregator can fall behind.
                 pipe.xadd(
@@ -82,6 +86,7 @@ class IngestService:
                 )
             elif isinstance(item, Rejected):
                 log.warning("rejected %s trade: %s %s", item.source, item.reason, item.detail)
+                DEAD_LETTERS.labels("ingest", item.reason.value).inc()
                 pipe.xadd(
                     DLQ_STREAM,
                     dead_letter(item, "ingest"),  # type: ignore[arg-type]

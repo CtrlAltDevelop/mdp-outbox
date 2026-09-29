@@ -24,6 +24,7 @@ from typing import Any
 import redis.asyncio as aioredis
 from redis.exceptions import ConnectionError as RedisConnectionError
 
+from mdp.metrics import WS_CHANNELS, WS_CLIENTS, WS_FRAMES, WS_SLOW_DISCONNECTS
 from mdp.schema import SYMBOL_PATTERN
 from mdp.streams import CANDLE_CHANNEL_PREFIX
 from mdp.timeframes import Timeframe
@@ -53,6 +54,7 @@ class Client:
             self.queue.put_nowait(frame)
         except asyncio.QueueFull:
             self.dropped = True
+            WS_SLOW_DISCONNECTS.inc()
             # Make room for the sentinel so the writer wakes up and closes.
             self.queue.get_nowait()
             self.queue.put_nowait(None)
@@ -92,6 +94,7 @@ class CandleHub:
         await self._pubsub.aclose()  # type: ignore[no-untyped-call]
 
     def connect(self) -> Client:
+        WS_CLIENTS.inc()
         return Client(asyncio.Queue(self._queue_size))
 
     async def subscribe(self, client: Client, channel: str) -> None:
@@ -101,6 +104,7 @@ class CandleHub:
                 await self._pubsub.subscribe(channel)
                 subscribers = self._subscribers[channel] = set()
                 self._active.set()
+                WS_CHANNELS.set(len(self._subscribers))
             subscribers.add(client)
             client.channels.add(channel)
 
@@ -114,10 +118,12 @@ class CandleHub:
             if not subscribers:
                 del self._subscribers[channel]
                 await self._pubsub.unsubscribe(channel)
+                WS_CHANNELS.set(len(self._subscribers))
                 if not self._subscribers:
                     self._active.clear()
 
     async def disconnect(self, client: Client) -> None:
+        WS_CLIENTS.dec()
         for channel in list(client.channels):
             await self.unsubscribe(client, channel)
 
@@ -147,6 +153,7 @@ class CandleHub:
         frame = f'{{"channel":"{channel}","data":{_text(message["data"])}}}'
         for client in list(subscribers):
             client.offer(frame)
+        WS_FRAMES.inc(len(subscribers))
 
 
 def _text(value: bytes | str) -> str:

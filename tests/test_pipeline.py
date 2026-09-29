@@ -12,6 +12,7 @@ from typing import cast
 
 import pytest
 import redis.asyncio as aioredis
+from prometheus_client import REGISTRY
 
 from mdp.aggregation import AggregationService
 from mdp.aggregator import Aggregator
@@ -218,3 +219,16 @@ async def test_restart_mid_bucket_closes_the_candle_correctly(redis: aioredis.Re
     assert minute.closed
     assert minute.trades == 59
     assert (str(minute.open), str(minute.close)) == ("101", "159")
+
+
+async def test_the_lag_probe_exports_stream_and_watermark_gauges(redis: aioredis.Redis) -> None:
+    await ingest(redis, [trade(at(0, 1), trade_id=1), trade(at(0, 2), trade_id=2)])
+    svc = service(redis, MemoryStore(), clock_ms=lambda: to_ms(at(1)))
+    await svc.start()
+    await svc.poll()
+
+    await svc.probe_lag()
+
+    assert REGISTRY.get_sample_value("mdp_stream_pending_entries", {"symbol": "BTC-USDT"}) == 0
+    delay = REGISTRY.get_sample_value("mdp_watermark_delay_seconds", {"symbol": "BTC-USDT"})
+    assert delay == 60 - 2 + 5  # the clock at 10:01, the watermark at 10:00:02 minus 5s

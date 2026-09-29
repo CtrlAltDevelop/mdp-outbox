@@ -28,6 +28,8 @@ from typing import Protocol
 from websockets.asyncio.client import connect
 from websockets.exceptions import InvalidHandshake, WebSocketException
 
+from mdp.metrics import SOURCE_RECONNECTS
+
 log = logging.getLogger(__name__)
 
 
@@ -69,7 +71,6 @@ class WebSocketFeed:
         connector: Connector = default_connector,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         rng: random.Random | None = None,
-        on_reconnect: Callable[[], None] = lambda: None,
     ) -> None:
         self.url = url
         self._subscribe = list(subscribe)
@@ -78,7 +79,6 @@ class WebSocketFeed:
         self._connector = connector
         self._sleep = sleep
         self._rng = rng or random.Random()
-        self._on_reconnect = on_reconnect
 
     async def messages(self) -> AsyncIterator[str]:
         """Yield text frames forever, reconnecting (and resubscribing) as needed."""
@@ -98,5 +98,5 @@ class WebSocketFeed:
                 log.warning("%s disconnected: %r", self.url, exc)
             delay = self._backoff.delay(attempt, self._rng)
             attempt += 1
-            self._on_reconnect()
+            SOURCE_RECONNECTS.labels(self.url).inc()
             await self._sleep(delay)

@@ -30,6 +30,17 @@ import redis.asyncio as aioredis
 from redis.exceptions import ResponseError
 
 from mdp.aggregator import Aggregator
+from mdp.metrics import (
+    BATCH_SECONDS,
+    CANDLES_WRITTEN,
+    DEAD_LETTERS,
+    DUPLICATES,
+    STREAM_LAG,
+    STREAM_PENDING,
+    TRADE_LAG_SECONDS,
+    TRADES_AGGREGATED,
+    WATERMARK_DELAY,
+)
 from mdp.normalizer import Rejected, RejectReason
 from mdp.schema import Candle, Trade
 from mdp.storage import Store, StoreTransaction
@@ -39,6 +50,10 @@ from mdp.timeframes import from_ms
 log = logging.getLogger(__name__)
 
 type Entry = tuple[bytes, bytes, dict[bytes, bytes]]  # (stream, message id, fields)
+
+
+def _text(value: bytes | str) -> str:
+    return value.decode() if isinstance(value, bytes) else value
 
 
 def _wall_clock_ms() -> int:
@@ -107,10 +122,27 @@ class AggregationService:
             if cursor in (b"0-0", "0-0"):
                 return
 
-    async def run(self, block_ms: int = 1_000) -> None:
+    async def run(self, block_ms: int = 1_000, probe_every_s: float = 5.0) -> None:
         await self.start()
+        next_probe = 0.0
         while True:
             await self.poll(block_ms)
+            if time.monotonic() >= next_probe:
+                await self.probe_lag()
+                next_probe = time.monotonic() + probe_every_s
+
+    async def probe_lag(self) -> None:
+        """Export how far the group trails each stream, and the watermarks."""
+        now = self._clock_ms()
+        for symbol, stream in zip(self._symbols, self._streams, strict=True):
+            for info in await self._redis.xinfo_groups(stream):
+                if _text(info["name"]) == self._group:
+                    # "lag" is Redis 7+, and null while it cannot be computed cheaply.
+                    STREAM_LAG.labels(symbol).set(info.get("lag") or 0)
+                    STREAM_PENDING.labels(symbol).set(info["pending"])
+            watermark = self._aggregator.watermark(symbol)
+            if watermark is not None:
+                WATERMARK_DELAY.labels(symbol).set((now - watermark) / 1000)
 
     async def poll(self, block_ms: int | None = None) -> int:
         """Read and process one batch; return how many messages it held.
@@ -148,6 +180,10 @@ class AggregationService:
         ]
 
     async def process(self, entries: Sequence[Entry]) -> list[Candle]:
+        with BATCH_SECONDS.time():
+            return await self._process(entries)
+
+    async def _process(self, entries: Sequence[Entry]) -> list[Candle]:
         trades: list[Trade] = []
         rejected: list[Rejected] = []
         for _, _, fields in entries:
@@ -161,9 +197,11 @@ class AggregationService:
 
         on_time, late = self._aggregator.observe(trades)
         touched = {t.symbol for t in trades}
+        fresh: list[Trade] = []
         if on_time:
             async with self._store.transaction() as tx:
-                self._aggregator.apply(await tx.insert_trades(on_time))
+                fresh = await tx.insert_trades(on_time)
+                self._aggregator.apply(fresh)
                 candles = self._close()
                 await self._checkpoint(tx, candles, touched)
         else:
@@ -175,7 +213,25 @@ class AggregationService:
 
         rejected.extend(self._late(trade) for trade in late)
         await self._finish(entries, candles, rejected)
+        self._record(on_time, fresh, candles, rejected)
         return candles
+
+    def _record(
+        self,
+        on_time: Sequence[Trade],
+        fresh: Sequence[Trade],
+        candles: Sequence[Candle],
+        rejected: Sequence[Rejected],
+    ) -> None:
+        DUPLICATES.labels("aggregate").inc(len(on_time) - len(fresh))
+        for item in rejected:
+            DEAD_LETTERS.labels("aggregate", item.reason.value).inc()
+        for candle in candles:
+            CANDLES_WRITTEN.labels(candle.tf.value, "closed" if candle.closed else "open").inc()
+        published = self._clock_ms()
+        for trade in fresh:
+            TRADES_AGGREGATED.labels(trade.symbol).inc()
+            TRADE_LAG_SECONDS.observe((published - trade.ts_ms) / 1000)
 
     def _close(self) -> list[Candle]:
         if self._idle_grace_ms is not None:

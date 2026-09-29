@@ -24,6 +24,7 @@ from typing import Any, Protocol
 
 import httpx
 
+from mdp.metrics import GAP_MINUTES, GAP_REPAIRED
 from mdp.schema import Candle
 from mdp.storage import Store
 from mdp.timeframes import BASE_TIMEFRAME, TIMEFRAMES, from_ms
@@ -209,12 +210,14 @@ class Backfiller:
         """Find minutes with no candle inside the lookback window and fetch just those."""
         settled = await self.settled_before(symbol)
         missing = await self._store.missing_minutes(symbol, settled - lookback_ms, settled)
+        GAP_MINUTES.labels(symbol).set(len(missing))
         if not missing:
             return RepairReport(symbol, 0, 0)
         fetched: list[Candle] = []
         for start, end in contiguous(missing):
             fetched.extend(await self._source.klines(symbol, start, end))
         await self._write(symbol, fetched, missing[0], settled)
+        GAP_REPAIRED.labels(symbol).inc(len(fetched))
         log.info(
             "%s: %d minutes missing since %s, %d recovered from %s",
             symbol,
@@ -239,12 +242,11 @@ async def repair_forever(
     *,
     lookback_ms: int,
     interval_s: float,
-    on_report: Callable[[RepairReport], None] = lambda report: None,
 ) -> None:
     while True:
         for symbol in symbols:
             try:
-                on_report(await backfiller.repair(symbol, lookback_ms))
+                await backfiller.repair(symbol, lookback_ms)
             except (httpx.HTTPError, RuntimeError) as exc:
                 log.warning("repairing %s failed, will retry: %r", symbol, exc)
         await asyncio.sleep(interval_s)

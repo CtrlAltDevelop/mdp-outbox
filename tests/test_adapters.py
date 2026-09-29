@@ -296,7 +296,6 @@ async def test_the_feed_reconnects_resubscribes_and_backs_off() -> None:
     first = ScriptedSocket(["a", "b"], ConnectionResetError())
     second = ScriptedSocket(["c"], ConnectionResetError())
     slept: list[float] = []
-    reconnects: list[int] = []
 
     async def sleep(seconds: float) -> None:
         slept.append(seconds)
@@ -308,13 +307,12 @@ async def test_the_feed_reconnects_resubscribes_and_backs_off() -> None:
         sleep=sleep,
         backoff=Backoff(base_s=1, cap_s=8),
         rng=random.Random(1),
-        on_reconnect=lambda: reconnects.append(1),
     )
 
     assert await take(feed, 3) == ["a", "b", "c"]
     assert first.sent == ["SUB"]
     assert second.sent == ["SUB"]
-    assert len(reconnects) == 3
+    assert len(slept) == 3  # one wait per reconnect
     # attempt 0 (after a healthy connection), then 1 and 2 while refused
     assert [s <= cap for s, cap in zip(slept, [1, 2, 4], strict=True)] == [True, True, True]
 
