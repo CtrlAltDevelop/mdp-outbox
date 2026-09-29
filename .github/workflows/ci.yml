@@ -1,0 +1,42 @@
+# The gate in front of main. The checks themselves live in
+# CtrlAltDevelop/ci-workflows so every project runs the same ones.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  backend:
+    name: Backend
+    uses: CtrlAltDevelop/ci-workflows/.github/workflows/python-backend.yml@v1
+    with:
+      python-version: "3.14"
+      # `uv export --all-groups`: runtime and dev dependencies, so pytest,
+      # pytest-asyncio and fakeredis come from here, pinned like the rest.
+      requirements: requirements.txt
+      test-requirements: ""
+      # The Postgres service is TimescaleDB, so the storage tests run in CI
+      # against the real thing instead of being skipped.
+      postgres-image: timescale/timescaledb:latest-pg16
+      redis: true
+      mypy: true
+
+  security:
+    name: Security
+    uses: CtrlAltDevelop/ci-workflows/.github/workflows/security.yml@v1
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+    with:
+      languages: '["python"]'

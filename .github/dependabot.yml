@@ -1,0 +1,26 @@
+# Actions first: an unpinned or abandoned action is the most direct route into
+# a pipeline that can execute code in the repository.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # uv.lock is the source of truth; after merging an update, run
+  # `make requirements` so CI installs the same versions.
+  - package-ecosystem: uv
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      python-minor:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
