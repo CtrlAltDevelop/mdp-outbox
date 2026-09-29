@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "market-data-pipeline"
+name = "mdp-outbox"
 version = "0.1.0"
 description = "Ingest trades from several sources, build OHLCV candles live and historically, and serve them over REST and WebSocket."
 readme = "README.md"
