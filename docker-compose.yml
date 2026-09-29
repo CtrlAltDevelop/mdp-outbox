@@ -1,0 +1,108 @@
+# The whole pipeline on one machine, fed by the synthetic source:
+#
+#   docker compose up --build
+#
+#   REST       http://localhost:8000/v1/candles?symbol=BTC-USDT&tf=1m
+#   WebSocket  ws://localhost:8000/v1/ws
+#   Grafana    http://localhost:3000   (the "Market Data Pipeline" dashboard)
+#   Prometheus http://localhost:9090
+#
+# To follow a real exchange instead, set MDP_SOURCE=binance and
+# MDP_SYMBOLS=BTC-USDT,ETH-USDT in .env (see .env.example).
+
+x-pipeline: &pipeline
+  build: .
+  image: market-data-pipeline:local
+  restart: unless-stopped
+  env_file:
+    - path: .env
+      required: false
+  environment: &pipeline-env
+    MDP_REDIS_URL: redis://redis:6379/0
+    MDP_DATABASE_URL: postgresql://mdp:${POSTGRES_PASSWORD:-mdp}@timescale:5432/mdp
+    MDP_SYMBOLS: ${MDP_SYMBOLS:-BTC-USDT,ETH-USDT}
+  depends_on:
+    redis:
+      condition: service_healthy
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  timescale:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: mdp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mdp}
+      POSTGRES_DB: mdp
+    volumes: [timescale-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mdp -d mdp"]
+      interval: 5s
+      retries: 20
+
+  migrate:
+    <<: *pipeline
+    command: ["migrate"]
+    restart: "no"
+    depends_on:
+      timescale:
+        condition: service_healthy
+
+  ingest:
+    <<: *pipeline
+    command: ["ingest"]
+    environment:
+      <<: *pipeline-env
+      MDP_SOURCE: ${MDP_SOURCE:-synthetic}
+
+  aggregate:
+    <<: *pipeline
+    command: ["aggregate"]
+
+  api:
+    <<: *pipeline
+    command: ["api"]
+    ports: ["${MDP_API_PORT:-8000}:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz')"]
+      interval: 10s
+      retries: 5
+
+  # Gap repair only makes sense against an exchange with a klines API; start
+  # it with `docker compose --profile repair up` when MDP_SOURCE is one.
+  repair:
+    <<: *pipeline
+    command: ["repair"]
+    profiles: [repair]
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["${MDP_PROMETHEUS_PORT:-9090}:9090"]
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"  # a local demo; read-only viewer role
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/pipeline.json
+    volumes:
+      - ./ops/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./ops/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["${MDP_GRAFANA_PORT:-3000}:3000"]
+    depends_on: [prometheus]
+
+volumes:
+  redis-data:
+  timescale-data:
