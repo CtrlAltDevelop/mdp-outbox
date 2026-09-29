@@ -158,6 +158,12 @@ def test_health_and_readiness(api: Harness) -> None:
     assert api.client.get("/readyz").json() == {"ready": True, "redis": "ok", "database": "ok"}
 
 
+def test_metrics_are_exposed(api: Harness) -> None:
+    body = api.client.get("/metrics/").text
+
+    assert "mdp_ws_clients" in body
+
+
 def test_readiness_fails_when_the_database_is_down() -> None:
     for h in harness(DownStore()):
         response = h.client.get("/readyz")

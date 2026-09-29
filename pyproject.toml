@@ -38,6 +38,9 @@ dependencies = [
     "websockets>=13",
 ]
 
+[project.scripts]
+mdp = "mdp.cli:main"
+
 [dependency-groups]
 dev = [
     "fakeredis>=2.26",

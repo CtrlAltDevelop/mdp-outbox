@@ -28,6 +28,7 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.responses import JSONResponse
+from prometheus_client import make_asgi_app
 from pydantic import BaseModel
 
 from mdp import __version__
@@ -84,6 +85,7 @@ def create_app(resources: Resources, symbols: Sequence[str]) -> FastAPI:
     app = FastAPI(title="Market Data Pipeline", version=__version__, lifespan=lifespan)
     app.state.symbols = frozenset(symbols)
     app.include_router(router)
+    app.mount("/metrics", make_asgi_app())
     return app
 
 
