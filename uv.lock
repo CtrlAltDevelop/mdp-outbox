@@ -417,7 +417,7 @@ wheels = [
 ]
 
 [[package]]
-name = "market-data-pipeline"
+name = "mdp-outbox"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

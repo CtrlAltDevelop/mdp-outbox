@@ -21,7 +21,7 @@ colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
 fakeredis==2.38.0
 fastapi==0.141.1
-    # via market-data-pipeline
+    # via mdp-outbox
 h11==0.16.0
     # via
     #   httpcore
@@ -34,7 +34,7 @@ httpcore==1.0.9
 httpcore2==2.13.1 ; sys_platform != 'emscripten'
     # via httpx2
 httpx==0.28.1
-    # via market-data-pipeline
+    # via mdp-outbox
 httpx2==2.13.1
 httpx2-jsfetch==1.0 ; sys_platform == 'emscripten'
     # via httpx2
@@ -57,22 +57,22 @@ pathspec==1.1.1
 pluggy==1.6.0
     # via pytest
 prometheus-client==0.26.0
-    # via market-data-pipeline
+    # via mdp-outbox
 psycopg==3.3.6
-    # via market-data-pipeline
+    # via mdp-outbox
 psycopg-binary==3.3.6 ; implementation_name != 'pypy'
     # via psycopg
 psycopg-pool==3.3.3
-    # via market-data-pipeline
+    # via mdp-outbox
 pydantic==2.13.5
     # via
     #   fastapi
-    #   market-data-pipeline
+    #   mdp-outbox
     #   pydantic-settings
 pydantic-core==2.46.5
     # via pydantic
 pydantic-settings==2.15.0
-    # via market-data-pipeline
+    # via mdp-outbox
 pygments==2.21.0
     # via pytest
 pytest==9.1.1
@@ -83,7 +83,7 @@ python-dotenv==1.2.3
 redis==8.1.0
     # via
     #   fakeredis
-    #   market-data-pipeline
+    #   mdp-outbox
 ruff==0.16.9
 sortedcontainers==2.4.0
     # via fakeredis
@@ -114,6 +114,6 @@ typing-inspection==0.4.4
 tzdata==2026.4 ; sys_platform == 'win32'
     # via psycopg
 uvicorn==0.54.0
-    # via market-data-pipeline
+    # via mdp-outbox
 websockets==17.1
-    # via market-data-pipeline
+    # via mdp-outbox
