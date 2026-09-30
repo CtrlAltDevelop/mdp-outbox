@@ -1,7 +1,11 @@
 # Market Data Pipeline
 
-[![CI](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml)
-[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml "CI status on main")
+[![PyPI](https://img.shields.io/pypi/v/mdp-outbox)](https://pypi.org/project/mdp-outbox/ "Latest release on PyPI")
+[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/mdp-outbox/ "Supported Python versions")
+[![TimescaleDB](https://img.shields.io/badge/timescaledb-pg16-FDB515)](https://www.timescale.com/ "Candle and trade storage")
+[![Redis](https://img.shields.io/badge/redis-streams-DC382D)](https://redis.io/docs/latest/develop/data-types/streams/ "Transport between ingest and aggregation")
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE "MIT License")
 
 Ingest trades from exchanges and a matching engine, aggregate them into OHLCV
 candles (1m, 5m, 1h, 1d) live and historically, and serve them over REST and
