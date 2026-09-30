@@ -58,3 +58,6 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # 0.1.0 was uploaded before this tag existed; don't fail on a re-run.
+          skip-existing: true
