@@ -9,7 +9,7 @@ anyio==4.15.1
     #   httpx
     #   httpx2
     #   starlette
-ast-serialize==0.11.2
+ast-serialize==0.12.1
     # via mypy
 certifi==2026.7.22
     # via
@@ -19,8 +19,8 @@ click==8.5.0
     # via uvicorn
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
-fakeredis==2.38.0
-fastapi==0.141.1
+fakeredis==2.39.0
+fastapi==0.142.2
     # via mdp-outbox
 h11==0.16.0
     # via
@@ -45,9 +45,9 @@ idna==3.20
     #   httpx2
 iniconfig==2.3.0
     # via pytest
-librt==0.15.0 ; platform_python_implementation != 'PyPy'
+librt==0.16.0 ; platform_python_implementation != 'PyPy'
     # via mypy
-mypy==2.3.1
+mypy==2.4.0
 mypy-extensions==1.1.0
     # via mypy
 packaging==26.3
@@ -78,13 +78,13 @@ pygments==2.21.0
 pytest==9.1.1
     # via pytest-asyncio
 pytest-asyncio==1.4.0
-python-dotenv==1.2.3
+python-dotenv==1.2.4
     # via pydantic-settings
 redis==8.1.0
     # via
     #   fakeredis
     #   mdp-outbox
-ruff==0.16.9
+ruff==0.16.10
 sortedcontainers==2.4.0
     # via fakeredis
 starlette==1.7.0
@@ -111,9 +111,9 @@ typing-inspection==0.4.4
     #   fastapi
     #   pydantic
     #   pydantic-settings
-tzdata==2026.4 ; sys_platform == 'win32'
+tzdata==2026.5 ; sys_platform == 'win32'
     # via psycopg
 uvicorn==0.54.0
     # via mdp-outbox
-websockets==17.1
+websockets==17.2
     # via mdp-outbox
