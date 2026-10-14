@@ -20,7 +20,7 @@ click==8.5.0
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
 fakeredis==2.39.0
-fastapi==0.142.2
+fastapi==0.143.0
     # via mdp-outbox
 h11==0.16.0
     # via
@@ -43,7 +43,7 @@ idna==3.20
     #   anyio
     #   httpx
     #   httpx2
-iniconfig==2.3.0
+iniconfig==2.3.1
     # via pytest
 librt==0.16.0 ; platform_python_implementation != 'PyPy'
     # via mypy
@@ -64,7 +64,7 @@ psycopg-binary==3.3.6 ; implementation_name != 'pypy'
     # via psycopg
 psycopg-pool==3.3.3
     # via mdp-outbox
-pydantic==2.13.5
+pydantic==2.14.1
     # via
     #   fastapi
     #   mdp-outbox
@@ -84,7 +84,7 @@ redis==8.1.0
     # via
     #   fakeredis
     #   mdp-outbox
-ruff==0.16.10
+ruff==0.17.0
 sortedcontainers==2.4.0
     # via fakeredis
 starlette==1.7.0
