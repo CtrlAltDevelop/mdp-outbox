@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import redis.asyncio as aioredis
-from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import RedisError
 
 from mdp.metrics import WS_CHANNELS, WS_CLIENTS, WS_FRAMES, WS_SLOW_DISCONNECTS
 from mdp.schema import SYMBOL_PATTERN
@@ -113,10 +113,15 @@ class CandleHub:
             subscribers.discard(client)
             if not subscribers:
                 del self._subscribers[channel]
-                await self._pubsub.unsubscribe(channel)
                 WS_CHANNELS.set(len(self._subscribers))
                 if not self._subscribers:
                     self._active.clear()
+                # A failure must not abort a disconnect half way; at worst the
+                # channel stays subscribed in Redis and its frames go nowhere.
+                try:
+                    await self._pubsub.unsubscribe(channel)
+                except RedisError as exc:
+                    log.warning("could not unsubscribe %s: %r", channel, exc)
 
     async def disconnect(self, client: Client) -> None:
         WS_CLIENTS.dec()
@@ -132,8 +137,8 @@ class CandleHub:
                 message = await self._pubsub.get_message(
                     ignore_subscribe_messages=True, timeout=1.0
                 )
-            except RedisConnectionError:
-                log.warning("lost the Redis subscription; retrying")
+            except Exception:  # never let the one reader die: every live feed stops with it
+                log.exception("reading the Redis subscription failed; retrying")
                 await asyncio.sleep(1.0)
                 continue
             if message is not None:
