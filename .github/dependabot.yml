@@ -10,18 +10,19 @@ updates:
       actions:
         patterns: ["*"]
 
-  # uv.lock is the source of truth; after merging an update, run
-  # `make requirements` so CI installs the same versions.
+  # uv.lock is the source of truth. Dependabot edits requirements.txt only for
+  # the packages it bumps; CI's requirements job catches anything it misses.
   - package-ecosystem: uv
     directory: "/"
     schedule:
       interval: weekly
     groups:
+      # pydantic pins pydantic-core exactly, so they must move in one PR.
+      # Listed first: a dependency joins the first group that matches.
+      pydantic:
+        patterns: [pydantic, pydantic-core]
       python-minor:
         update-types: [minor, patch]
-    # pydantic pins pydantic-core exactly; bumping it alone can't resolve.
-    ignore:
-      - dependency-name: pydantic-core
 
   - package-ecosystem: docker
     directory: "/"
