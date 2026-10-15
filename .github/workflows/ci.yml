@@ -33,6 +33,17 @@ jobs:
       redis: true
       mypy: true
 
+  requirements:
+    name: Requirements in sync
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      # Backend installs requirements.txt, so it must match uv.lock exactly.
+      - run: make requirements && git diff --exit-code requirements.txt
+
   security:
     name: Security
     uses: CtrlAltDevelop/ci-workflows/.github/workflows/security.yml@v1.1.1
