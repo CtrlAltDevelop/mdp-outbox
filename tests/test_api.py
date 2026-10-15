@@ -146,6 +146,7 @@ def test_limit_caps_the_number_of_candles(api: Harness) -> None:
         ({"symbol": "BTC-USDT", "tf": "3m"}, 422),
         ({"symbol": "BTC-USDT", "tf": "1m", "from": "yesterday"}, 422),
         ({"symbol": "BTC-USDT", "tf": "1m", "from": "1000", "to": "1000"}, 422),
+        ({"symbol": "BTC-USDT", "tf": "1m", "to": "99999999999999999"}, 422),
         ({"symbol": "BTC-USDT", "tf": "1m", "limit": "0"}, 422),
     ],
 )

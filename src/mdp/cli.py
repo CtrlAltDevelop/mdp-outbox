@@ -70,30 +70,30 @@ def build_source(settings: Settings) -> TradeSource:
 
 async def ingest(settings: Settings) -> None:
     start_http_server(settings.metrics_port)
-    redis = aioredis.Redis.from_url(settings.redis_url)
     source = build_source(settings)
     log.info("ingesting %s from %s", ",".join(settings.symbols), source.name)
-    await IngestService(source, Normalizer(settings.symbols), redis).run()
+    async with aioredis.Redis.from_url(settings.redis_url) as redis:
+        await IngestService(source, Normalizer(settings.symbols), redis).run()
 
 
 async def aggregate(settings: Settings) -> None:
     start_http_server(settings.metrics_port)
-    redis = aioredis.Redis.from_url(settings.redis_url)
-    store = await TimescaleStore.connect(settings.database_url)
-    service = AggregationService(
-        redis,
-        store,
-        settings.symbols,
-        consumer=settings.consumer,
-        allowed_lateness_ms=settings.allowed_lateness_ms,
-        idle_grace_ms=settings.idle_grace_ms,
-        batch_size=settings.batch_size,
-    )
-    log.info("aggregating %s as %s", ",".join(settings.symbols), settings.consumer)
-    try:
-        await service.run()
-    finally:
-        await store.close()
+    async with aioredis.Redis.from_url(settings.redis_url) as redis:
+        store = await TimescaleStore.connect(settings.database_url)
+        service = AggregationService(
+            redis,
+            store,
+            settings.symbols,
+            consumer=settings.consumer,
+            allowed_lateness_ms=settings.allowed_lateness_ms,
+            idle_grace_ms=settings.idle_grace_ms,
+            batch_size=settings.batch_size,
+        )
+        log.info("aggregating %s as %s", ",".join(settings.symbols), settings.consumer)
+        try:
+            await service.run()
+        finally:
+            await store.close()
 
 
 async def api(settings: Settings) -> None:

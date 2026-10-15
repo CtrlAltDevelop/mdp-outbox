@@ -9,7 +9,6 @@ snapshot of the same candle, so there is no gap to stitch.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import logging
 from collections.abc import AsyncIterator, Callable, Sequence
@@ -35,7 +34,7 @@ from mdp import __version__
 from mdp.hub import CHANNEL_PATTERN, CandleHub, Client, ClientTooSlowError
 from mdp.schema import Candle
 from mdp.storage import CandleReader
-from mdp.timeframes import Timeframe, to_ms
+from mdp.timeframes import Timeframe, from_ms, to_ms
 
 log = logging.getLogger(__name__)
 
@@ -58,11 +57,13 @@ class CandlesResponse(BaseModel):
 
 def parse_time(value: str) -> int:
     """Epoch milliseconds, or an ISO 8601 timestamp (UTC unless it says otherwise)."""
-    if value.lstrip("-").isdigit():
-        return int(value)
     try:
+        if value.lstrip("-").isdigit():
+            ms = int(value)
+            from_ms(ms)  # out of datetime's range: refuse it here, not as a 500 later
+            return ms
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
+    except (ValueError, OverflowError):
         raise HTTPException(422, f"not a timestamp: {value!r}") from None
     return to_ms(parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC))
 
@@ -152,8 +153,9 @@ async def ws(socket: WebSocket) -> None:
         pass
     finally:
         writer.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await writer
+        # The writer may already have died sending to a closed socket; whatever
+        # it ended with, the client must still leave the hub.
+        await asyncio.gather(writer, return_exceptions=True)
         await hub.disconnect(client)
 
 

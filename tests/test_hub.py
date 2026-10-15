@@ -5,11 +5,14 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import AsyncIterator
+from types import SimpleNamespace
 from typing import cast
 
 import pytest
 import redis.asyncio as aioredis
+from fastapi import WebSocketDisconnect
 
+from mdp.api import ws
 from mdp.hub import CHANNEL_PATTERN, CandleHub, Client, ClientTooSlowError
 
 CHANNEL = "candles:BTC-USDT:1m"
@@ -88,6 +91,36 @@ async def test_a_client_that_falls_behind_is_cut_off_not_buffered(
     assert slow.dropped
     with pytest.raises(ClientTooSlowError):
         await read_until_cut_off(slow)
+
+
+class BrokenSocket:
+    """Takes one subscription, then fails every frame the way a vanished peer does."""
+
+    def __init__(self, hub: CandleHub) -> None:
+        self.hub = hub
+        self.app = SimpleNamespace(state=SimpleNamespace(hub=hub, symbols=frozenset({"BTC-USDT"})))
+        self.requests = [json.dumps({"op": "subscribe", "channel": CHANNEL})]
+
+    async def accept(self) -> None:
+        return None
+
+    async def receive_text(self) -> str:
+        if self.requests:
+            return self.requests.pop()
+        self.hub._dispatch({"channel": CHANNEL, "data": "{}"})
+        for _ in range(5):
+            await asyncio.sleep(0)  # let the writer fail on that frame
+        raise WebSocketDisconnect
+
+    async def send_text(self, text: str) -> None:
+        if not text.startswith('{"op"'):
+            raise ConnectionResetError
+
+
+async def test_a_client_leaves_the_hub_even_when_its_writer_failed(hub: CandleHub) -> None:
+    await ws(BrokenSocket(hub))  # type: ignore[arg-type]
+
+    assert hub.channels() == []
 
 
 @pytest.mark.parametrize(
