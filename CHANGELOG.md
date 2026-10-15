@@ -7,6 +7,14 @@ WebSocket protocol, the REST parameters or an `MDP_*` setting.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-15
+
+### Changed
+
+- Locked dependencies updated: python-dotenv 1.2.4 and tzdata 2026.5, plus
+  development tools. The Docker image picks these up; the package's own
+  dependency ranges are unchanged.
+
 ## [0.1.1] - 2026-10-15
 
 ### Fixed
@@ -53,6 +61,7 @@ WebSocket protocol, the REST parameters or an `MDP_*` setting.
   whole pipeline on the synthetic source.
 - Benchmarks for aggregator throughput, end-to-end latency and storage.
 
-[Unreleased]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/CtrlAltDevelop/mdp-outbox/releases/tag/v0.1.0
