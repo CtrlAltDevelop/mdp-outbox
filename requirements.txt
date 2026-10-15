@@ -9,7 +9,7 @@ anyio==4.15.1
     #   httpx
     #   httpx2
     #   starlette
-ast-serialize==0.12.1
+ast-serialize==0.11.2
     # via mypy
 certifi==2026.7.22
     # via
@@ -20,7 +20,7 @@ click==8.5.0
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
 fakeredis==2.39.0
-fastapi==0.142.2
+fastapi==0.143.0
     # via mdp-outbox
 h11==0.16.0
     # via
@@ -50,6 +50,8 @@ librt==0.16.0 ; platform_python_implementation != 'PyPy'
 mypy==2.4.0
 mypy-extensions==1.1.0
     # via mypy
+opentelemetry-api==1.45.1
+    # via fastapi
 packaging==26.3
     # via pytest
 pathspec==1.1.1
@@ -64,12 +66,12 @@ psycopg-binary==3.3.6 ; implementation_name != 'pypy'
     # via psycopg
 psycopg-pool==3.3.3
     # via mdp-outbox
-pydantic==2.13.5
+pydantic==2.14.1
     # via
     #   fastapi
     #   mdp-outbox
     #   pydantic-settings
-pydantic-core==2.46.5
+pydantic-core==2.50.1
     # via pydantic
 pydantic-settings==2.15.0
     # via mdp-outbox
@@ -78,13 +80,13 @@ pygments==2.21.0
 pytest==9.1.1
     # via pytest-asyncio
 pytest-asyncio==1.4.0
-python-dotenv==1.2.4
+python-dotenv==1.2.3
     # via pydantic-settings
 redis==8.1.0
     # via
     #   fakeredis
     #   mdp-outbox
-ruff==0.16.10
+ruff==0.17.0
 sortedcontainers==2.4.0
     # via fakeredis
 starlette==1.7.0
@@ -99,6 +101,7 @@ typing-extensions==4.16.0
     #   fastapi
     #   httpx2
     #   mypy
+    #   opentelemetry-api
     #   psycopg
     #   psycopg-pool
     #   pydantic
@@ -111,7 +114,7 @@ typing-inspection==0.4.4
     #   fastapi
     #   pydantic
     #   pydantic-settings
-tzdata==2026.5 ; sys_platform == 'win32'
+tzdata==2026.4 ; sys_platform == 'win32'
     # via psycopg
 uvicorn==0.54.0
     # via mdp-outbox
