@@ -9,7 +9,7 @@ anyio==4.15.1
     #   httpx
     #   httpx2
     #   starlette
-ast-serialize==0.12.1
+ast-serialize==0.13.1
     # via mypy
 certifi==2026.7.22
     # via
@@ -19,15 +19,15 @@ click==8.5.0
     # via uvicorn
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
-fakeredis==2.39.0
-fastapi==0.143.0
+fakeredis==2.40.0
+fastapi==0.143.3
     # via mdp-outbox
 h11==0.16.0
     # via
     #   httpcore
     #   httpcore2
     #   uvicorn
-hiredis==3.4.2
+hiredis==3.5.0
     # via redis
 httpcore==1.0.9
     # via httpx
@@ -56,7 +56,7 @@ packaging==26.3
     # via pytest
 pathspec==1.1.1
     # via mypy
-pluggy==1.6.0
+pluggy==1.7.0
     # via pytest
 prometheus-client==0.26.0
     # via mdp-outbox
@@ -73,7 +73,7 @@ pydantic==2.14.1
     #   pydantic-settings
 pydantic-core==2.50.1
     # via pydantic
-pydantic-settings==2.15.0
+pydantic-settings==2.16.0
     # via mdp-outbox
 pygments==2.21.0
     # via pytest
@@ -86,12 +86,12 @@ redis==8.1.0
     # via
     #   fakeredis
     #   mdp-outbox
-ruff==0.17.0
+ruff==0.17.1
 sortedcontainers==2.4.0
     # via fakeredis
-starlette==1.7.0
+starlette==1.8.0
     # via fastapi
-truststore==0.10.4 ; sys_platform != 'emscripten'
+truststore==0.10.5 ; sys_platform != 'emscripten'
     # via
     #   httpcore2
     #   httpx2
