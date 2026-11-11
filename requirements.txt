@@ -4,38 +4,38 @@ annotated-doc==0.0.5
     # via fastapi
 annotated-types==0.8.0
     # via pydantic
-anyio==4.15.1
+anyio==4.16.0
     # via
     #   httpx
     #   httpx2
     #   starlette
-ast-serialize==0.12.1
+ast-serialize==0.13.1
     # via mypy
-certifi==2026.7.22
+certifi==2026.10.23
     # via
     #   httpcore
     #   httpx
-click==8.5.0
+click==8.5.1
     # via uvicorn
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
-fakeredis==2.39.0
-fastapi==0.143.0
+fakeredis==2.40.0
+fastapi==0.162.2
     # via mdp-outbox
 h11==0.16.0
     # via
     #   httpcore
     #   httpcore2
     #   uvicorn
-hiredis==3.4.2
+hiredis==3.5.0
     # via redis
 httpcore==1.0.9
     # via httpx
-httpcore2==2.13.1 ; sys_platform != 'emscripten'
+httpcore2==2.16.0 ; sys_platform != 'emscripten'
     # via httpx2
 httpx==0.28.1
     # via mdp-outbox
-httpx2==2.13.1
+httpx2==2.16.0
 httpx2-jsfetch==1.0 ; sys_platform == 'emscripten'
     # via httpx2
 idna==3.20
@@ -47,51 +47,51 @@ iniconfig==2.3.1
     # via pytest
 librt==0.16.0 ; platform_python_implementation != 'PyPy'
     # via mypy
-mypy==2.4.0
-mypy-extensions==1.1.0
+mypy==2.4.1
+mypy-extensions==1.2.0
     # via mypy
-opentelemetry-api==1.45.1
+opentelemetry-api==1.45.2
     # via fastapi
 packaging==26.3
     # via pytest
 pathspec==1.1.1
     # via mypy
-pluggy==1.6.0
+pluggy==1.7.0
     # via pytest
 prometheus-client==0.26.0
     # via mdp-outbox
-psycopg==3.3.6
+psycopg==3.3.8
     # via mdp-outbox
-psycopg-binary==3.3.6 ; implementation_name != 'pypy'
+psycopg-binary==3.3.8 ; implementation_name != 'pypy'
     # via psycopg
 psycopg-pool==3.3.3
     # via mdp-outbox
-pydantic==2.14.1
+pydantic==2.14.3
     # via
     #   fastapi
     #   mdp-outbox
     #   pydantic-settings
-pydantic-core==2.50.1
+pydantic-core==2.50.4
     # via pydantic
-pydantic-settings==2.15.0
+pydantic-settings==2.16.2
     # via mdp-outbox
 pygments==2.21.0
     # via pytest
-pytest==9.1.1
+pytest==9.2.0
     # via pytest-asyncio
-pytest-asyncio==1.4.0
+pytest-asyncio==1.4.1.post1
 python-dotenv==1.2.4
     # via pydantic-settings
 redis==8.1.0
     # via
     #   fakeredis
     #   mdp-outbox
-ruff==0.17.0
+ruff==0.17.4
 sortedcontainers==2.4.0
     # via fakeredis
-starlette==1.7.0
+starlette==1.10.0
     # via fastapi
-truststore==0.10.4 ; sys_platform != 'emscripten'
+truststore==0.10.5 ; sys_platform != 'emscripten'
     # via
     #   httpcore2
     #   httpx2
@@ -109,14 +109,14 @@ typing-extensions==4.16.0
     #   pytest-asyncio
     #   starlette
     #   typing-inspection
-typing-inspection==0.4.4
+typing-inspection==0.4.5
     # via
     #   fastapi
     #   pydantic
     #   pydantic-settings
-tzdata==2026.5 ; sys_platform == 'win32'
+tzdata==2026.6 ; sys_platform == 'win32'
     # via psycopg
 uvicorn==0.54.0
     # via mdp-outbox
-websockets==17.2
+websockets==17.4
     # via mdp-outbox
