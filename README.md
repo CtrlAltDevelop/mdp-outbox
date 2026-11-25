@@ -1,11 +1,15 @@
 # Market Data Pipeline
 
 [![CI](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml "CI status on main")
+[![Release](https://img.shields.io/github/v/release/CtrlAltDevelop/mdp-outbox)](https://github.com/CtrlAltDevelop/mdp-outbox/releases)
 [![PyPI](https://img.shields.io/pypi/v/mdp-outbox)](https://pypi.org/project/mdp-outbox/ "Latest release on PyPI")
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/mdp-outbox/ "Supported Python versions")
+![FastAPI](https://img.shields.io/badge/fastapi-%E2%89%A50.115-009688)
 [![TimescaleDB](https://img.shields.io/badge/timescaledb-pg16-FDB515)](https://www.timescale.com/ "Candle and trade storage")
 [![Redis](https://img.shields.io/badge/redis-streams-DC382D)](https://redis.io/docs/latest/develop/data-types/streams/ "Transport between ingest and aggregation")
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE "MIT License")
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE "AGPL-3.0 License")
+![Docker](https://img.shields.io/badge/docker-compose-2496ED)
+[![last commit](https://img.shields.io/github/last-commit/CtrlAltDevelop/mdp-outbox)](https://github.com/CtrlAltDevelop/mdp-outbox/commits/main)
 
 Ingest trades from exchanges and a matching engine, aggregate them into OHLCV
 candles (1m, 5m, 1h, 1d) live and historically, and serve them over REST and
@@ -416,6 +420,10 @@ ops/                Prometheus config, Grafana provisioning and dashboard
 docs/adr/           architecture decision records
 ```
 
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
-[MIT](LICENSE) © 2026 Mohammad Zarif
+[AGPL-3.0-only](LICENSE) © 2026 Mohammad Zarif
