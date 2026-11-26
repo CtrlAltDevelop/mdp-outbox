@@ -215,3 +215,11 @@ def test_after_unsubscribing_nothing_more_arrives(api: Harness) -> None:
 
         # The next frame is the ack, not the candle published while unsubscribed.
         assert ws.receive_json() == {"op": "subscribed", "channel": CHANNEL}
+
+
+def test_websocket_answers_a_binary_frame_with_an_error(api: Harness) -> None:
+    with api.client.websocket_connect("/v1/ws") as ws:
+        ws.send_bytes(b"\x00\x01")
+        assert ws.receive_json()["op"] == "error"
+        ws.send_json({"op": "subscribe", "channel": CHANNEL})
+        assert ws.receive_json() == {"op": "subscribed", "channel": CHANNEL}

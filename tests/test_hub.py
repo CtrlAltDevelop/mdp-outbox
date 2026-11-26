@@ -104,9 +104,9 @@ class BrokenSocket:
     async def accept(self) -> None:
         return None
 
-    async def receive_text(self) -> str:
+    async def receive(self) -> dict[str, str]:
         if self.requests:
-            return self.requests.pop()
+            return {"type": "websocket.receive", "text": self.requests.pop()}
         self.hub._dispatch({"channel": CHANNEL, "data": "{}"})
         for _ in range(5):
             await asyncio.sleep(0)  # let the writer fail on that frame
