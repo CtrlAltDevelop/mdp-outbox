@@ -3,7 +3,7 @@
 [![CI](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlAltDevelop/mdp-outbox/actions/workflows/ci.yml "CI status on main")
 [![Release](https://img.shields.io/github/v/release/CtrlAltDevelop/mdp-outbox)](https://github.com/CtrlAltDevelop/mdp-outbox/releases)
 [![PyPI](https://img.shields.io/pypi/v/mdp-outbox)](https://pypi.org/project/mdp-outbox/ "Latest release on PyPI")
-[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/mdp-outbox/ "Supported Python versions")
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://pypi.org/project/mdp-outbox/ "Supported Python versions")
 ![FastAPI](https://img.shields.io/badge/fastapi-%E2%89%A50.115-009688)
 [![TimescaleDB](https://img.shields.io/badge/timescaledb-pg16-FDB515)](https://www.timescale.com/ "Candle and trade storage")
 [![Redis](https://img.shields.io/badge/redis-streams-DC382D)](https://redis.io/docs/latest/develop/data-types/streams/ "Transport between ingest and aggregation")
