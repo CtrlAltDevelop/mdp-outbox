@@ -76,7 +76,7 @@ def parse_message(
                 )
             )
         return events
-    except (ValueError, KeyError, TypeError, AttributeError) as exc:
+    except (ArithmeticError, ValueError, KeyError, TypeError, AttributeError) as exc:
         return [Rejected(SOURCE, RejectReason.MALFORMED, raw, repr(exc))]
 
 

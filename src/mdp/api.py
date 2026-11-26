@@ -68,6 +68,11 @@ def parse_time(value: str) -> int:
     return to_ms(parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC))
 
 
+class SymbolsResponse(BaseModel):
+    symbols: list[str]
+    timeframes: list[Timeframe]
+
+
 router = APIRouter()
 
 
@@ -114,6 +119,12 @@ async def candles(
         raise HTTPException(422, "`from` must be before `to`")
     rows = await state.store.get_candles(symbol, tf, start_ms, end_ms, limit)
     return CandlesResponse(symbol=symbol, tf=tf, candles=rows)
+
+
+@router.get("/v1/symbols")
+async def symbols(request: Request) -> SymbolsResponse:
+    """What a client may ask for: the configured symbols and every timeframe."""
+    return SymbolsResponse(symbols=sorted(request.app.state.symbols), timeframes=list(Timeframe))
 
 
 @router.get("/healthz")

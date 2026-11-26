@@ -1,12 +1,10 @@
-# The gate in front of main. The checks themselves live in
-# CtrlAltDevelop/ci-workflows so every project runs the same ones.
+# Runs the tests on a pull request into main — and on nothing else.
+# The job lives once in CtrlAltDevelop/ci-workflows (python-test.yml).
 
 name: CI
 
 on:
   pull_request:
-    branches: [main]
-  push:
     branches: [main]
 
 concurrency:
@@ -16,40 +14,13 @@ concurrency:
 permissions: {}
 
 jobs:
-  backend:
-    name: Backend
-    uses: CtrlAltDevelop/ci-workflows/.github/workflows/python-backend.yml@v1.1.1
+  test:
+    name: Test
+    uses: CtrlAltDevelop/ci-workflows/.github/workflows/python-test.yml@v1.2.0
     permissions:
       contents: read
     with:
       python-version: "3.14"
-      # `uv export --all-groups`: runtime and dev dependencies, so pytest,
-      # pytest-asyncio and fakeredis come from here, pinned like the rest.
-      requirements: requirements.txt
-      test-requirements: ""
-      # The Postgres service is TimescaleDB, so the storage tests run in CI
-      # against the real thing instead of being skipped.
+      postgres: true
       postgres-image: timescale/timescaledb:latest-pg16
       redis: true
-      mypy: true
-
-  requirements:
-    name: Requirements in sync
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v7
-      # Backend installs requirements.txt, so it must match uv.lock exactly.
-      - run: make requirements && git diff --exit-code requirements.txt
-
-  security:
-    name: Security
-    uses: CtrlAltDevelop/ci-workflows/.github/workflows/security.yml@v1.1.1
-    permissions:
-      contents: read
-      security-events: write
-      pull-requests: write
-    with:
-      languages: '["python"]'

@@ -1,10 +1,8 @@
-# =============================================================================
-# Release: build once, publish to PyPI with trusted publishing.
-# =============================================================================
-# Runs on a version tag. No API token exists anywhere: PyPI trusts this
-# workflow's OIDC identity, configured once under the project's "Publishing"
-# settings (owner CtrlAltDevelop, repo mdp-outbox, workflow
-# release.yml, environment pypi).
+# Publishes the package to PyPI when a version tag is pushed.
+#
+# `v<version>` publishes that version. The tag check and the one-off PyPI
+# setup live in CtrlAltDevelop/ci-workflows (python-publish.yml). PyPI trusts
+# this file's name and the `pypi` environment, so keep both.
 
 name: Release
 
@@ -15,49 +13,12 @@ on:
 permissions: {}
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+  release:
+    name: Release
+    uses: CtrlAltDevelop/ci-workflows/.github/workflows/python-publish.yml@v1.2.0
     permissions:
       contents: read
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.13"
-      - name: Tag matches the package version
-        run: |
-          version=$(uv version --short)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match version $version in pyproject.toml"
-            exit 1
-          fi
-      - run: uv build
-      - uses: actions/upload-artifact@v7
-        with:
-          name: dist
-          path: dist/
-          if-no-files-found: error
-
-  publish:
-    name: Publish to PyPI
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment:
-      name: pypi
-      url: https://pypi.org/project/mdp-outbox/
-    permissions:
-      id-token: write # the OIDC token PyPI exchanges for a short-lived upload credential
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          # 0.1.0 was uploaded before this tag existed; don't fail on a re-run.
-          skip-existing: true
+      id-token: write
+    with:
+      package-name: mdp-outbox
+      skip-existing: true
