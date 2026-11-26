@@ -110,3 +110,18 @@ def test_candle_payload_uses_chart_friendly_field_names() -> None:
         "trades": 2,
         "closed": True,
     }
+
+
+@pytest.mark.parametrize("field", ["price", "qty"])
+@pytest.mark.parametrize("value", ["1e200000", "1" + "0" * 40, "1e-30", "0." + "0" * 20 + "1"])
+def test_values_a_numeric_column_could_choke_on_are_refused(field: str, value: str) -> None:
+    # An absurd magnitude passes the gate and then fails the database insert on every
+    # redelivery, stalling the aggregator behind it: refuse it at the boundary instead.
+    with pytest.raises(ValidationError):
+        make_trade(**{field: value})
+
+
+def test_realistic_extremes_are_accepted() -> None:
+    trade = make_trade(price="0.00000001", qty="1000000000000.123456789012345678")
+
+    assert trade.price == Decimal("0.00000001")
