@@ -93,6 +93,10 @@ def test_binance_control_frames_are_ignored() -> None:
             RejectReason.MALFORMED,
         ),
         (
+            '{"data":{"e":"trade","s":"BTCUSDT","t":1,"p":"1","q":"1","T":99999999999999999999,"m":true}}',
+            RejectReason.MALFORMED,
+        ),
+        (
             '{"data":{"e":"trade","s":"XRPUSDT","t":1,"p":"1","q":"1","T":1,"m":true}}',
             RejectReason.UNKNOWN_SYMBOL,
         ),

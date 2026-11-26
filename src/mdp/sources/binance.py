@@ -63,7 +63,7 @@ def parse_message(
                 ts_ingested=now or datetime.now(UTC),
             )
         ]
-    except (ValueError, KeyError, TypeError, AttributeError) as exc:
+    except (ArithmeticError, ValueError, KeyError, TypeError, AttributeError) as exc:
         return [Rejected(SOURCE, RejectReason.MALFORMED, raw, repr(exc))]
 
 
