@@ -7,6 +7,28 @@ WebSocket protocol, the REST parameters or an `MDP_*` setting.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-26
+
+### Added
+
+- `GET /v1/symbols` lists the symbols a deployment serves and the available
+  timeframes, so a client can discover what to request.
+
+### Changed
+
+- Trade `price` and `qty` are limited to 38 digits and 18 decimal places. A
+  trade outside that is rejected as `malformed` and dead-lettered; before, an
+  absurd magnitude passed validation, failed the database insert on every
+  redelivery and stalled the aggregator. Prices below `1e-18` are now refused.
+- Docker base image is `python:3.15-slim`, and locked dependencies are updated.
+
+### Fixed
+
+- A WebSocket binary frame gets an error reply instead of dropping the
+  connection.
+- A Binance or Kraken frame with an out-of-range timestamp is rejected as
+  `malformed` instead of crashing the ingest source.
+
 ## [0.1.2] - 2026-10-15
 
 ### Changed
@@ -61,7 +83,8 @@ WebSocket protocol, the REST parameters or an `MDP_*` setting.
   whole pipeline on the synthetic source.
 - Benchmarks for aggregator throughput, end-to-end latency and storage.
 
-[Unreleased]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/CtrlAltDevelop/mdp-outbox/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/CtrlAltDevelop/mdp-outbox/releases/tag/v0.1.0
