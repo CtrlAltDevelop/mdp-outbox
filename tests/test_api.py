@@ -154,6 +154,12 @@ def test_bad_queries_are_refused(api: Harness, params: dict[str, str], status: i
     assert api.client.get("/v1/candles", params=params).status_code == status
 
 
+def test_symbols_lists_what_this_deployment_serves(api: Harness) -> None:
+    body = api.client.get("/v1/symbols").json()
+
+    assert body == {"symbols": ["BTC-USDT", "ETH-USDT"], "timeframes": ["1m", "5m", "1h", "1d"]}
+
+
 def test_health_and_readiness(api: Harness) -> None:
     assert api.client.get("/healthz").json() == {"status": "ok"}
     assert api.client.get("/readyz").json() == {"ready": True, "redis": "ok", "database": "ok"}

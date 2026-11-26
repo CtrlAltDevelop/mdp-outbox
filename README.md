@@ -190,6 +190,15 @@ curl 'http://localhost:8000/v1/candles?symbol=BTC-USDT&tf=5m&from=2026-09-26T00:
 It returns 404 for a symbol this deployment does not serve, and 422 for a bad
 timeframe or range.
 
+### `GET /v1/symbols`
+
+The symbols this deployment serves and the available timeframes, so a client
+can discover what to ask for.
+
+```json
+{"symbols": ["BTC-USDT"], "timeframes": ["1m", "5m", "1h", "1d"]}
+```
+
 ### WebSocket `/v1/ws`
 
 Channels are named `candles:{symbol}:{tf}`. A client may hold up to 50.
