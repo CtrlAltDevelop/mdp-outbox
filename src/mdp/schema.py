@@ -21,7 +21,11 @@ from mdp.timeframes import Timeframe, to_ms
 # "12.5", never "1.25E+1": clients parse these with double.parse / parseFloat,
 # and a fixed-point string is what every one of them handles.
 DecimalStr = Annotated[Decimal, PlainSerializer(lambda d: format(d, "f"), return_type=str)]
-PositiveDecimal = Annotated[DecimalStr, Field(gt=0, allow_inf_nan=False)]
+# Sized like numeric(38,18): far beyond any real price or size, and small enough that the
+# database can never refuse a value this gate let through (which would stall the aggregator).
+PositiveDecimal = Annotated[
+    DecimalStr, Field(gt=0, allow_inf_nan=False, max_digits=38, decimal_places=18)
+]
 
 SYMBOL_PATTERN = r"^[A-Z0-9]+-[A-Z0-9]+$"
 
