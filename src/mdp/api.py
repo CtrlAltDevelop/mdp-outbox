@@ -158,7 +158,7 @@ async def ws(socket: WebSocket) -> None:
     writer = asyncio.create_task(_write(socket, client))
     try:
         while True:
-            reply = await _handle(hub, client, symbols, await socket.receive_text())
+            reply = await _handle(hub, client, symbols, await _receive_text(socket))
             await socket.send_text(json.dumps(reply))
     except WebSocketDisconnect:
         pass
@@ -168,6 +168,17 @@ async def ws(socket: WebSocket) -> None:
         # it ended with, the client must still leave the hub.
         await asyncio.gather(writer, return_exceptions=True)
         await hub.disconnect(client)
+
+
+async def _receive_text(socket: WebSocket) -> str:
+    """The next frame's text; a binary frame yields "", which `_handle` answers as an error.
+
+    ``receive_text`` raises ``KeyError`` on a binary frame, which would drop the connection.
+    """
+    message = await socket.receive()
+    if message["type"] == "websocket.disconnect":
+        raise WebSocketDisconnect(message.get("code", 1000))
+    return str(message.get("text") or "")
 
 
 async def _write(socket: WebSocket, client: Client) -> None:
